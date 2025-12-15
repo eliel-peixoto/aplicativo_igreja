@@ -1,6 +1,6 @@
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-
+import React from "react";
 import CarregandoApp from "./telas/CarregandoApp";
 import CriarConta from "./telas/criarConta";
 import Login from "./telas/login";
@@ -15,16 +15,12 @@ import CadastrarMembro from "./telas/admin/cadastrarMembro";
 import AtualizarMembro from "./telas/admin/AtualizarMembro";
 import Produto from "./telas/cliente/Produto";
 import Perfil from "./telas/cliente/Perfil";
-import PerfilADM from "./telas/admin/PerfilADM";
 import EditarConta from "./telas/cliente/EditarConta";
 import Carrinho from "./telas/cliente/Carrinho";
 import CadastrarCategoria from "./telas/admin/CadastrarCateogia";
 import VisualizarCliente from "./telas/admin/VisualizarCliente";
 import Pedidos from "./telas/admin/Pedidos";
 import DetalhesPedido from "./telas/admin/DetalhesPedido";
-import HistoricoCompras from "./telas/cliente/HistoricoPedidos";
-import StatusPedido from "./telas/cliente/StatusPedido";
-import CadastroCartao from "./telas/cliente/CadastroCartao";
 
 const Stack = createNativeStackNavigator();
 
@@ -41,18 +37,6 @@ export default function App() {
           name="Login"
           component={Login}
           options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="HistoricoCompras"
-          component={HistoricoCompras}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen name="CadastroCartao" component={CadastroCartao} />
-
-        <Stack.Screen
-          name="StatusPedido"
-          component={StatusPedido}
-          options={{ headerBackTitleVisible: false, title: '' }}
         />
         <Stack.Screen
           name="CadastroUsuario"
@@ -112,12 +96,7 @@ export default function App() {
         <Stack.Screen
           name="Perfil"
           component={Perfil}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="PerfilADM"
-          component={PerfilADM}
-          options={{ headerShown: false }}
+          options={{ headerBackTitleVisible: false, title: '' }}
         />
         <Stack.Screen
           name="EditarConta"
@@ -142,7 +121,7 @@ export default function App() {
         <Stack.Screen
           name="Pedidos"
           component={Pedidos}
-          options={{ headerShown: false }}
+          options={{ headerBackTitleVisible: false, title: '' }}
         />
         <Stack.Screen
           name="DetalhesPedido"

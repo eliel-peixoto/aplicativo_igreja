@@ -1,12 +1,12 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import { StyleSheet, TouchableOpacity, View, TextInput, Text } from 'react-native';
+import { StyleSheet, TouchableOpacity, View, TextInput } from 'react-native';
 import { Avatar } from 'react-native-elements';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';  // import
 
 import cores from '../style/cores';
 
-export default function BarraPesquisaClientes({ busca, setBusca, quantidadeCarrinho }) {
-  const navigation = useNavigation();
+export default function BarraPesquisaClientes({ busca, setBusca }) {
+  const navigation = useNavigation(); // hook aqui
 
   return (
     <View style={estilos.header}>
@@ -26,16 +26,12 @@ export default function BarraPesquisaClientes({ busca, setBusca, quantidadeCarri
           />
           <MaterialIcons name="search" size={24} color="gray" />
         </View>
-        <View style={estilos.carrinhoContainer}>
-          <TouchableOpacity onPress={() => navigation.navigate('Carrinho')}>
-            <MaterialIcons name="shopping-cart" size={30} color={cores.textoClaro} />
-            {quantidadeCarrinho > 0 && (
-              <View style={estilos.badge}>
-                <Text style={estilos.badgeText}>{quantidadeCarrinho}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity
+          style={estilos.notificacao}
+          onPress={() => navigation.navigate("Carrinho")}
+        >
+          <MaterialIcons name="shopping-cart" size={28} color="#fff" />
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -74,24 +70,9 @@ const estilos = StyleSheet.create({
     color: cores.texto,
     marginRight: 10,
   },
-  carrinhoContainer: {
-    marginLeft: 10,
+  notificacao: {
     position: 'relative',
-  },
-  badge: {
-    position: 'absolute',
-    top: -5,
-    right: -5,
-    backgroundColor: 'red',
-    borderRadius: 10,
-    width: 20,
-    height: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  badgeText: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#fff',
+    padding: 10,
+    borderRadius: 50,
   },
 });

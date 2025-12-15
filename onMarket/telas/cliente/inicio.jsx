@@ -1,5 +1,4 @@
 import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 import {
@@ -11,17 +10,15 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-
-import BarraPesquisaClientes from '../navigation/baraPesquisa_clientes';
-import MenuInferiorCliente from '../navigation/navigationBar_cliente';
 import cores from '../style/cores';
+import MenuInferiorCliente from '../navigation/navigationBar_cliente';
+import BarraPesquisaClientes from '../navigation/baraPesquisa_clientes';
 
 export default function Inicio({ navigation }) {
   const [produtos, setProdutos] = useState([]);
   const [categorias, setCategorias] = useState([]);
   const [categoriaSelecionada, setCategoriaSelecionada] = useState(null);
   const [busca, setBusca] = useState('');
-  const [quantidadeCarrinho, setQuantidadeCarrinho] = useState(0);
 
   useEffect(() => {
     Promise.all([
@@ -45,26 +42,6 @@ export default function Inicio({ navigation }) {
         setCategorias(categoriasOrdenadas);
       })
       .catch(err => console.error('Erro ao buscar dados:', err));
-
-    async function carregarCarrinho() {
-      try {
-        const usuarioSalvo = await AsyncStorage.getItem('@usuario');
-        const usuario = JSON.parse(usuarioSalvo);
-        const usuarioId = usuario?.id;
-
-        if (usuarioId) {
-          const respostaCarrinho = await axios.get(
-            `https://on-markett-2.onrender.com/api/carrinho/${usuarioId}`
-          );
-          const quantidade = respostaCarrinho.data.itens.length;
-          setQuantidadeCarrinho(quantidade);
-        }
-      } catch (error) {
-        console.error('Erro ao carregar carrinho:', error);
-      }
-    }
-
-    carregarCarrinho();
   }, []);
 
   const produtosFiltrados = produtos.filter(prod => {
@@ -75,14 +52,17 @@ export default function Inicio({ navigation }) {
 
   return (
     <SafeAreaView style={estilos.container}>
-      <BarraPesquisaClientes setBusca={setBusca} busca={busca} quantidadeCarrinho={quantidadeCarrinho} />
+      {/* HEADER */}
+      <BarraPesquisaClientes setBusca={setBusca} busca={busca} />
 
+      {/* CONTEÚDO PRINCIPAL */}
       <ScrollView style={estilos.conteudo} showsVerticalScrollIndicator={false}>
+        {/* CATEGORIAS */}
         <View style={estilos.linhaTitulo}>
           <Text style={estilos.conteudo_principal}>Categorias</Text>
         </View>
-        
         <View style={estilos.grid}>
+          {/* Botão "Todos" */}
           <TouchableOpacity
             style={[
               estilos.itemCategoria,
@@ -91,11 +71,12 @@ export default function Inicio({ navigation }) {
             onPress={() => setCategoriaSelecionada(null)}
           >
             <View style={estilos.circuloIcone}>
-              <MaterialIcons name="apps" size={28} color={cores.texto} />
+              <MaterialIcons name="apps" size={28} color="#212121" />
             </View>
             <Text style={estilos.textoCategoria}>Todos</Text>
           </TouchableOpacity>
 
+          {/* Demais categorias */}
           {categorias.map((item) => (
             <TouchableOpacity
               key={item.id}
@@ -111,9 +92,9 @@ export default function Inicio({ navigation }) {
             >
               <View style={estilos.circuloIcone}>
                 {item.tipo === 'MaterialIcons' ? (
-                  <MaterialIcons name={item.icone} size={28} color={cores.texto} />
+                  <MaterialIcons name={item.icone} size={28} color="#212121" />
                 ) : (
-                  <FontAwesome name={item.icone} size={28} color={cores.texto} />
+                  <FontAwesome name={item.icone} size={28} color="#212121" />
                 )}
               </View>
               <Text style={estilos.textoCategoria}>{item.nome}</Text>
@@ -121,6 +102,7 @@ export default function Inicio({ navigation }) {
           ))}
         </View>
 
+        {/* PRODUTOS */}
         <View style={estilos.linhaTitulo}>
           <Text style={estilos.conteudo_principal}>Produtos</Text>
         </View>
@@ -149,14 +131,20 @@ export default function Inicio({ navigation }) {
                   resizeMode="cover"
                 />
               ) : (
-                <View style={[estilos.imagemProduto, { backgroundColor: '#ccc', justifyContent: 'center', alignItems: 'center' }]}>
+                <View
+                  style={[
+                    estilos.imagemProduto,
+                    { backgroundColor: '#ccc', justifyContent: 'center', alignItems: 'center' },
+                  ]}
+                >
                   <Text>Sem imagem</Text>
                 </View>
               )}
               <View style={estilos.infoCard}>
                 <Text style={estilos.nomeProduto}>{item.nome}</Text>
                 <Text style={estilos.precoProduto}>
-                  R$ {typeof item.preco === 'number'
+                  R${' '}
+                  {typeof item.preco === 'number'
                     ? item.preco.toFixed(2)
                     : parseFloat(item.preco)?.toFixed(2) || '0.00'}
                 </Text>
@@ -165,10 +153,10 @@ export default function Inicio({ navigation }) {
             </TouchableOpacity>
           ))}
         </View>
-
         <View style={{ height: 100 }} />
       </ScrollView>
 
+      {/* MENU FIXO INFERIOR */}
       <MenuInferiorCliente navigation={navigation} />
     </SafeAreaView>
   );
@@ -198,18 +186,20 @@ const estilos = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'flex-start',
+    rowGap: 15,
+    columnGap: 10,
   },
   itemCategoria: {
-    width: '22%',
+    width: '23%',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 15,
+    marginRight: 10,
+    paddingVertical: 5,
+    borderRadius: 10,
   },
   categoriaSelecionada: {
-    backgroundColor: '#a5d6a7',
-    borderRadius: 10,
+    backgroundColor: '#c8e6c9',
     padding: 10,
-    borderWidth: 2,
-    borderColor: cores.Principal,
   },
   circuloIcone: {
     backgroundColor: cores.IconeCategorias,
@@ -256,5 +246,5 @@ const estilos = StyleSheet.create({
   quantidadeProduto: {
     fontSize: 12,
     color: '#777',
-  },
+  }
 });

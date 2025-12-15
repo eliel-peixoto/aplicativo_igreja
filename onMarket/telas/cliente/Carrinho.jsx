@@ -1,29 +1,22 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import axios from "axios";
 import { useEffect, useState } from "react";
+import axios from "axios";
 import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
   View,
+  Text,
+  ScrollView,
+  Image,
+  StyleSheet,
+  SafeAreaView,
+  TouchableOpacity,
+  Alert,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import cores from "../style/cores";
 
 export default function Carrinho({ navigation }) {
   const [itens, setItens] = useState([]);
   const [usuarioId, setUsuarioId] = useState(null);
   const [carrinhoId, setCarrinhoId] = useState(null);
-  const [carregando, setCarregando] = useState(true);
-
-  // NOVO: cartões e cartão selecionado
-  const [cartoes, setCartoes] = useState([]);
-  const [cartaoSelecionado, setCartaoSelecionado] = useState(null);
-  const [carregandoCartoes, setCarregandoCartoes] = useState(false);
 
   useEffect(() => {
     async function carregarUsuarioEItens() {
@@ -33,38 +26,18 @@ export default function Carrinho({ navigation }) {
         const id = usuario?.id;
 
         if (!id) {
-          console.warn("Usuário não encontrado no AsyncStorage.");
           Alert.alert("Erro", "Usuário não encontrado. Faça login novamente.");
           return;
         }
 
         setUsuarioId(id);
 
-        setCarregando(true);
-        const resCarrinho = await axios.get(
-          `https://on-markett-2.onrender.com/api/carrinho/${id}`
-        );
-        setCarrinhoId(resCarrinho.data.carrinhoId);
-        setItens(resCarrinho.data.itens || []);
-        setCarregando(false);
-
-        // Buscar cartões
-        setCarregandoCartoes(true);
-        const resCartoes = await axios.get(
-          `https://on-markett-2.onrender.com/api/payment/listar/${id}`
-        );
-        setCartoes(resCartoes.data || []);
-        setCarregandoCartoes(false);
-
-        // Se tiver cartões, selecionar o primeiro por padrão
-        if (resCartoes.data && resCartoes.data.length > 0) {
-          setCartaoSelecionado(resCartoes.data[0].id);
-        }
+        const res = await axios.get(`https://on-markett-2.onrender.com/api/carrinho/${id}`);
+        setCarrinhoId(res.data.carrinhoId);
+        setItens(res.data.itens || []);
       } catch (error) {
-        console.error("Erro ao carregar dados:", error);
-        Alert.alert("Erro", "Não foi possível carregar o carrinho ou cartões.");
-        setCarregando(false);
-        setCarregandoCartoes(false);
+        console.error("Erro ao carregar carrinho:", error);
+        Alert.alert("Erro", "Não foi possível carregar o carrinho.");
       }
     }
 
@@ -86,10 +59,10 @@ export default function Carrinho({ navigation }) {
     }
 
     try {
-      await axios.delete(
-        `https://on-markett-2.onrender.com/api/carrinho/${carrinhoId}/${produtoId}`
-      );
+      await axios.delete(`https://on-markett-2.onrender.com/api/carrinho/${carrinhoId}/${produtoId}`);
+
       setItens((prev) => prev.filter((item) => item.produtoId !== produtoId));
+
       Alert.alert("Sucesso", "Item removido do carrinho.");
     } catch (error) {
       console.error("Erro ao remover item:", error);
@@ -104,81 +77,45 @@ export default function Carrinho({ navigation }) {
     }
 
     if (itens.length === 0) {
-      Alert.alert(
-        "Carrinho vazio",
-        "Adicione produtos antes de finalizar a compra."
-      );
-      return;
-    }
-
-    if (!cartaoSelecionado) {
-      Alert.alert(
-        "Cartão não selecionado",
-        "Selecione um cartão para finalizar a compra."
-      );
+      Alert.alert("Carrinho vazio", "Adicione produtos antes de finalizar a compra.");
       return;
     }
 
     try {
-      await axios.post(
-        `https://on-markett-2.onrender.com/api/payment/finalizar`,
-        {
-          compradorId: usuarioId,
-          formaPagamento: "cartao",
-          pagamentoId: cartaoSelecionado,
-        }
-      );
+      await axios.post(`https://on-markett-2.onrender.com/api/carrinho/finalizar`, {
+        compradorId: usuarioId,
+        formaPagamento: "dinheiro", // você pode modificar para permitir escolher a forma
+      });
 
       setItens([]);
       Alert.alert("Compra finalizada", "Obrigado pela sua compra!");
-      // navigation.navigate("Home");
+
+      // Opcional: navegar para outra tela após finalizar
+      // navigation.navigate("Home"); 
     } catch (error) {
       console.error("Erro ao finalizar compra:", error);
-      Alert.alert(
-        "Erro",
-        error.response?.data?.error || "Não foi possível finalizar a compra."
-      );
+      Alert.alert("Erro", error.response?.data?.error || "Não foi possível finalizar a compra.");
     }
   };
 
   return (
     <SafeAreaView style={estilos.container}>
       <ScrollView contentContainerStyle={{ padding: 20 }}>
-        {carregando ? (
-          <View style={estilos.carregandoContainer}>
-            <ActivityIndicator size="large" color={cores.Preco} />
-            <Text style={estilos.textoCarregando}>Carregando carrinho...</Text>
-          </View>
-        ) : itens.length === 0 ? (
+        {itens.length === 0 ? (
           <Text style={{ textAlign: "center" }}>Carrinho vazio.</Text>
         ) : (
           itens.map((item) => (
             <View key={item.id} style={estilos.cardProduto}>
-              {item.Produto?.foto ? (
-                <Image
-                  source={{
-                    uri:
-                      item.Produto.foto.length < 100
-                        ? `https://drive.google.com/uc?export=view&id=${item.Produto.foto}`
-                        : `data:image/jpeg;base64,${item.Produto.foto}`,
-                  }}
-                  style={estilos.imagemProduto}
-                  resizeMode="cover"
-                />
-              ) : (
-                <View
-                  style={[
-                    estilos.imagemProduto,
-                    {
-                      backgroundColor: "#ccc",
-                      justifyContent: "center",
-                      alignItems: "center",
-                    },
-                  ]}
-                >
-                  <Text>Sem imagem</Text>
-                </View>
-              )}
+              <Image
+                source={{
+                  uri:
+                    item.Produto?.foto?.length < 100
+                      ? `https://drive.google.com/uc?export=view&id=${item.Produto.foto}`
+                      : `data:image/jpeg;base64,${item.Produto?.foto}`,
+                }}
+                style={estilos.imagemProduto}
+                resizeMode="cover"
+              />
               <View style={estilos.infoCard}>
                 <Text style={estilos.nomeProduto}>{item.Produto?.nome}</Text>
                 <Text>Quantidade: {item.quantidade}</Text>
@@ -194,10 +131,7 @@ export default function Carrinho({ navigation }) {
                       "Deseja remover esse item do carrinho?",
                       [
                         { text: "Cancelar", style: "cancel" },
-                        {
-                          text: "Remover",
-                          onPress: () => removerItem(item.produtoId),
-                        },
+                        { text: "Remover", onPress: () => removerItem(item.produtoId) },
                       ]
                     )
                   }
@@ -211,55 +145,16 @@ export default function Carrinho({ navigation }) {
           ))
         )}
 
-        {/* Mostrar cartões, total e botão finalizar APENAS se houver itens */}
         {itens.length > 0 && (
           <>
-            {carregandoCartoes ? (
-              <View style={{ marginTop: 20, alignItems: "center" }}>
-                <ActivityIndicator size="small" color={cores.Preco} />
-                <Text>Carregando cartões...</Text>
-              </View>
-            ) : cartoes.length === 0 ? (
-              <Text
-                style={{ marginTop: 20, textAlign: "center", color: "red" }}
-              >
-                Nenhum cartão cadastrado. Por favor, cadastre um cartão.
-              </Text>
-            ) : (
-              <View style={{ marginTop: 20 }}>
-                <Text
-                  style={{
-                    marginBottom: 8,
-                    fontWeight: "bold",
-                    color: cores.texto,
-                  }}
-                >
-                  Selecione um cartão para pagamento:
-                </Text>
-                {cartoes.map((cartao) => (
-                  <TouchableOpacity
-                    key={cartao.id}
-                    style={[
-                      estilos.cartaoItem,
-                      cartaoSelecionado === cartao.id &&
-                        estilos.cartaoSelecionado,
-                    ]}
-                    onPress={() => setCartaoSelecionado(cartao.id)}
-                  >
-                    <Text style={{ color: cores.texto }}>
-                      {`**** **** **** ${cartao.numeroCartao.slice(-4)} - ${
-                        cartao.nomeTitular
-                      }`}
-                    </Text>
-                    <Text style={{ color: cores.texto, fontSize: 12 }}>
-                      {`Validade: ${cartao.validade}`}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
-
-            <Text style={estilos.total}>
+            <Text
+              style={{
+                fontSize: 16,
+                fontWeight: "bold",
+                textAlign: "right",
+                marginTop: 20,
+              }}
+            >
               Total: R$ {calcularTotal().toFixed(2)}
             </Text>
 
@@ -268,9 +163,7 @@ export default function Carrinho({ navigation }) {
               onPress={() =>
                 Alert.alert(
                   "Finalizar Compra",
-                  `Total a pagar: R$ ${calcularTotal().toFixed(
-                    2
-                  )}\nConfirmar compra?`,
+                  `Total a pagar: R$ ${calcularTotal().toFixed(2)}\nConfirmar compra?`,
                   [
                     { text: "Cancelar", style: "cancel" },
                     { text: "Confirmar", onPress: finalizarCompra },
@@ -278,9 +171,7 @@ export default function Carrinho({ navigation }) {
                 )
               }
             >
-              <Text
-                style={{ color: "#fff", textAlign: "center", fontSize: 16 }}
-              >
+              <Text style={{ color: "#fff", textAlign: "center", fontSize: 16 }} /*navigation.navigate("Pagamentos") */>
                 Finalizar Compra
               </Text>
             </TouchableOpacity>
@@ -295,17 +186,6 @@ const estilos = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: cores.Secundaria,
-  },
-  carregandoContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    height: "100%",
-  },
-  textoCarregando: {
-    marginTop: 10,
-    fontSize: 16,
-    color: cores.texto,
   },
   cardProduto: {
     backgroundColor: cores.cardProdutos,
@@ -347,22 +227,5 @@ const estilos = StyleSheet.create({
     backgroundColor: "green",
     padding: 15,
     borderRadius: 8,
-  },
-  total: {
-    fontSize: 16,
-    fontWeight: "bold",
-    textAlign: "right",
-    marginTop: 20,
-    marginRight: 10,
-  },
-  cartaoItem: {
-    backgroundColor: cores.cardProdutos,
-    padding: 10,
-    borderRadius: 8,
-    marginBottom: 10,
-  },
-  cartaoSelecionado: {
-    borderWidth: 2,
-    borderColor: cores.Preco,
   },
 });

@@ -17,21 +17,9 @@ import cores from '../style/cores';
 export default function EditarConta({ route, navigation }) {
   const { usuario } = route.params;
 
-  // Função para formatar o CPF com máscara 000.000.000-00
-  function formatarCPF(value) {
-    let cpfLimpo = value.replace(/\D/g, '');
-    cpfLimpo = cpfLimpo.substring(0, 11);
-    cpfLimpo = cpfLimpo.replace(/(\d{3})(\d)/, '$1.$2');
-    cpfLimpo = cpfLimpo.replace(/(\d{3})(\d)/, '$1.$2');
-    cpfLimpo = cpfLimpo.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-    return cpfLimpo;
-  }
-
-  // Inicializa cpf já formatado
-  const [cpf, setCpf] = useState(formatarCPF(usuario.cpf || ''));
-
   const [nome, setNome] = useState(usuario.nome);
   const [email, setEmail] = useState(usuario.email);
+  const [cpf, setCpf] = useState(usuario.cpf || '');
   const [senha, setSenha] = useState(usuario.senha);
   const [mostrarSenha, setMostrarSenha] = useState(false);
 
@@ -45,7 +33,7 @@ export default function EditarConta({ route, navigation }) {
       const atualizado = {
         nome,
         email,
-        cpf: cpf.replace(/\D/g, ''), // envia o CPF limpo para a API
+        cpf,
         senha,
         tipo: usuario.tipo,
       };
@@ -103,9 +91,8 @@ export default function EditarConta({ route, navigation }) {
               placeholderTextColor="#999"
               style={styles.input}
               value={cpf}
-              onChangeText={text => setCpf(formatarCPF(text))}
+              onChangeText={setCpf}
               keyboardType="numeric"
-              maxLength={14} // permite máscara
             />
           </View>
 

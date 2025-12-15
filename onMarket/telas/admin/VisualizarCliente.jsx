@@ -7,22 +7,22 @@ import 'moment/locale/pt-br';
 
 const VisualizarCliente = ({ route }) => {
   const { cliente } = route.params;
-  const [pedidos, setPedidos] = useState([]);
+  const [compras, setCompras] = useState([]);
 
   useEffect(() => {
-    const fetchPedidos = async () => {
+    const fetchCompras = async () => {
       try {
         const response = await fetch(
-          `https://on-markett-2.onrender.com/api/pedidos/comprador/${cliente.id}`
+          `https://on-markett-2.onrender.com/api/compras/${cliente.id}`//esse é o endpoint que retorna as compras do cliente???
         );
         const data = await response.json();
-        setPedidos(data);
+        setCompras(data);
       } catch (error) {
-        console.error('Erro ao buscar pedidos:', error);
+        console.error('Erro ao buscar compras:', error);
       }
     };
 
-    fetchPedidos();
+    fetchCompras();
   }, [cliente.id]);
 
   const dataCadastro = moment(cliente.data_cadastro || cliente.created_at);
@@ -46,18 +46,17 @@ const VisualizarCliente = ({ route }) => {
           <Text>{dataCadastro.format('LL')} ({tempoDeCliente})</Text>
         </View>
 
-        <Text style={styles.titulo}>Pedidos Realizados</Text>
-        {pedidos.length > 0 ? (
-          pedidos.map((pedido, index) => (
+        <Text style={styles.titulo}>Compras Realizadas</Text>
+        {compras.length > 0 ? (
+          compras.map((compra, index) => (
             <View key={index} style={styles.compraItem}>
-              <Text>Pedido #{pedido.id}</Text>
-              <Text>Data: {moment(pedido.data).format('LL')}</Text>
-              <Text>Forma de Pagamento: {pedido.formaPagamento}</Text>
-              <Text>Status: {pedido.status}</Text>
+              <Text>Data: {moment(compra.data).format('LL')}</Text>
+              <Text>Produtos: {compra.itens.join(', ')}</Text>
+              <Text>Total: R$ {compra.total.toFixed(2)}</Text>
             </View>
           ))
         ) : (
-          <Text style={{ marginTop: 10 }}>Nenhum pedido registrado.</Text>
+          <Text style={{ marginTop: 10 }}>Nenhuma compra registrada.</Text>
         )}
       </ScrollView>
     </SafeAreaView>
